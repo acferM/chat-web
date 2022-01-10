@@ -7,6 +7,10 @@ export default createGlobalStyle`
     box-sizing: border-box;
   }
 
+  body {
+    background: ${props => props.theme.colors.background};
+  }
+
   button {
     cursor: pointer;
   }

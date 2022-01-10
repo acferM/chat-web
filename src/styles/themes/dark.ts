@@ -15,33 +15,41 @@ const darkTheme: DefaultTheme = {
 
   fonts: {
     chat_status: `
+      font-family: Poppins;
       font-size: 0.875rem;
     `,
     chat_title: `
+      font-family: Poppins;
       font-weight: 600;
       font-size: 1.5rem;
     `,
     contact_message: `
+      font-family: Poppins;
       font-weight: 500;
       font-size: 0.875rem;
     `,
     contact_title: `
+      font-family: Poppins;
       font-weight: 600;
       font-size: 1.125rem;
     `,
     message: `
+      font-family: Poppins;
       font-weight: 500;
       font-size: 1rem;
     `,
     message_time: `
+      font-family: Poppins;
       font-weight: 500;
       font-size: 0.75rem;
     `,
     placeholder: `
+      font-family: Poppins;
       font-weight: 500;
       font-size: 1rem;
     `,
     section_title: `
+      font-family: Poppins;
       font-weight: 600;
       font-size: 1.25rem;
     `,
