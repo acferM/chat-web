@@ -2,7 +2,7 @@ import styled from 'styled-components';
 
 export const Container = styled.div`
   width: 26.75rem;
-  height: 100%;
+  height: calc(50% - 1.875rem);
   border-radius: 1.25rem;
   background: ${props => props.theme.colors.section};
   box-shadow: 0 4px 4px ${props => props.theme.colors.blue_shadow};

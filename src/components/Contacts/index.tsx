@@ -1,6 +1,6 @@
 import { Container } from './styles';
 
-export function Groups(): JSX.Element {
+export function Contacts(): JSX.Element {
   return (
     <Container>
       <h1>Groups</h1>
