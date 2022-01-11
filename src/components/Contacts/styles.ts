@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 export const Container = styled.div`
-  width: 26.75rem;
+  width: 100%;
   height: calc(50% - 1.875rem);
   border-radius: 1.25rem;
   background: ${props => props.theme.colors.section};

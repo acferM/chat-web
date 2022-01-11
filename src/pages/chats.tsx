@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { FiSearch } from 'react-icons/fi';
+import { Chat } from '../components/Chat';
 
 import { Contacts } from '../components/Contacts';
 import { Sidebar } from '../components/Sidebar';
@@ -11,7 +12,7 @@ export default function Chats(): JSX.Element {
     <Container>
       <Sidebar />
 
-      <div>
+      <section>
         <label>
           <FiSearch size={24} color="#fff" />
           <input type="text" placeholder="Pesquisar" />
@@ -20,7 +21,9 @@ export default function Chats(): JSX.Element {
         <Contacts />
 
         <Contacts />
-      </div>
+      </section>
+
+      <Chat />
     </Container>
   );
 }

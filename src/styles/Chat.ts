@@ -5,8 +5,10 @@ export const Container = styled.div`
   padding: 2.1875rem 2rem;
   display: flex;
   justify-content: space-between;
+  gap: 2.8125rem;
 
-  > div {
+  > section {
+    width: calc(50% - 5.8125rem);
     display: flex;
     flex-direction: column;
     gap: 2.75rem;
