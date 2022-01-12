@@ -6,6 +6,11 @@ export default nextAuth({
     GithubProvider({
       clientId: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      authorization: {
+        params: {
+          scope: 'user',
+        },
+      },
     }),
   ],
   callbacks: {
@@ -15,6 +20,23 @@ export default nextAuth({
       }
 
       return baseUrl;
+    },
+    jwt: async ({ token, profile, account }) => {
+      if (account) {
+        return {
+          ...token,
+          accessToken: account.access_token,
+          login: profile.login,
+        };
+      }
+
+      return token;
+    },
+    session: async ({ session, token }) => {
+      return {
+        ...session,
+        ...token,
+      };
     },
   },
 });

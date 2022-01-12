@@ -1,20 +1,42 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useSession } from 'next-auth/react';
+import { GetServerSideProps } from 'next';
+import { getSession, useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import { io } from 'socket.io-client';
 import { Chat } from '../components/Chat';
 
-import { Contacts } from '../components/Contacts';
+import { Groups } from '../components/Groups';
+import { Users } from '../components/Users';
 import { Sidebar } from '../components/Sidebar';
+import { api } from '../services/api';
+import { github } from '../services/github';
 
 import { Container } from '../styles/Chat';
+
+type User = {
+  id: string;
+  name: string;
+  avatar_url: string;
+};
+
+type Org = {
+  id: string;
+  login: string;
+  avatar_url: string;
+  members_url: string;
+};
 
 const socket = io('http://localhost:3333', {
   autoConnect: false,
 });
 
-export default function Chats(): JSX.Element {
+interface ChatsProps {
+  users: User[];
+  orgs: Org[];
+}
+
+export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -39,12 +61,43 @@ export default function Chats(): JSX.Element {
           <input type="text" placeholder="Pesquisar" />
         </label>
 
-        <Contacts />
+        <Groups contacts={orgs} />
 
-        <Contacts />
+        <Users contacts={users} />
       </section>
 
       <Chat />
     </Container>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async ({ req }) => {
+  const session = await getSession({ req });
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      },
+    };
+  }
+
+  github.defaults.headers.common.Authorization = `Bearer ${session.accessToken}`;
+
+  const { data: orgs } = await github.get<Org[]>(`user/orgs`);
+
+  const formattedOrgs = orgs.map(org => ({
+    ...org,
+    members_url: org.members_url.replace('{/member}', ''),
+  }));
+
+  const { data: users } = await api.get<User[]>(`users/${session.login}`);
+
+  return {
+    props: {
+      users,
+      orgs: formattedOrgs,
+    },
+  };
+};
