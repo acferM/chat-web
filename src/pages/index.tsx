@@ -1,11 +1,10 @@
-import { useRouter } from 'next/router';
+import { signIn } from 'next-auth/react';
+
 import { Container } from '../styles/Home';
 
 export default function Home(): JSX.Element {
-  const router = useRouter();
-
   const handleSignIn = (): void => {
-    router.push('/chats');
+    signIn('github');
   };
 
   return (

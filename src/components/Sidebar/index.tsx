@@ -5,12 +5,15 @@ import { IoIosNotificationsOutline } from 'react-icons/io';
 import { FiSettings } from 'react-icons/fi';
 import { GoSignOut } from 'react-icons/go';
 
+import { signOut, useSession } from 'next-auth/react';
 import { Container } from './styles';
 
 export function Sidebar(): JSX.Element {
+  const { data: session } = useSession();
+
   return (
     <Container>
-      <img src="https://github.com/acferM.png" alt="acferM" />
+      <img src={session?.user?.image} alt={session?.user?.name} />
 
       <nav>
         <button type="button">
@@ -30,7 +33,7 @@ export function Sidebar(): JSX.Element {
         </button>
       </nav>
 
-      <button type="button">
+      <button type="button" onClick={() => signOut()}>
         <GoSignOut size={50} />
       </button>
     </Container>
