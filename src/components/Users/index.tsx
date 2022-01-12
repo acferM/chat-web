@@ -13,7 +13,7 @@ interface UsersProps {
 export function Users({ contacts }: UsersProps): JSX.Element {
   return (
     <Container>
-      <h1>Groups</h1>
+      <h1>Users</h1>
 
       <main>
         {contacts.map(contact => (
