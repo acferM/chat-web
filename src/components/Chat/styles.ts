@@ -39,6 +39,21 @@ export const Container = styled.div`
   main {
     margin-top: 1rem;
     height: calc(100% - 15.875rem);
+    overflow-y: scroll;
+    padding-right: 0.5rem;
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.25);
+    }
 
     article {
       color: ${props => props.theme.colors.text};
