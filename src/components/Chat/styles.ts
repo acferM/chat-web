@@ -89,7 +89,7 @@ export const Container = styled.div`
     }
   }
 
-  footer {
+  form {
     display: flex;
     align-items: center;
     gap: 1.25rem;

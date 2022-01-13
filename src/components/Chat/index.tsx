@@ -1,8 +1,11 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { Socket } from 'socket.io-client';
+import dayjs from 'dayjs';
 import { FiSmile } from 'react-icons/fi';
 import { RiSendPlaneFill } from 'react-icons/ri';
-import { Socket } from 'socket.io-client';
+
 import { api } from '../../services/api';
 
 import { Container } from './styles';
@@ -17,7 +20,10 @@ type Contact = {
 type Message = {
   id: string;
   text: string;
-  created_at: Date;
+  createdAt: string;
+  from: {
+    email: string;
+  };
 };
 
 interface ChatProps {
@@ -28,6 +34,9 @@ interface ChatProps {
 export function Chat({ contact, socket }: ChatProps): JSX.Element {
   const [chatId, setChatId] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
+  const [textInput, setTextInput] = useState('');
+
+  const { data: session } = useSession();
 
   useEffect(() => {
     if (contact) {
@@ -45,7 +54,12 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
               `messages/${chat_id}`
             );
 
-            setMessages(requestMessages);
+            const formattedMessages = requestMessages.map(message => ({
+              ...message,
+              createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
+            }));
+
+            setMessages(formattedMessages);
           }
         );
       } else if (contact.type === 'group') {
@@ -68,6 +82,29 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
       }
     }
   }, [contact, socket]);
+
+  useEffect(() => {
+    socket.on('message', message => {
+      setMessages(prevMessages => [
+        ...prevMessages,
+        {
+          ...message,
+          createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
+        },
+      ]);
+    });
+  }, [socket]);
+
+  const handleSendMessage = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      socket.emit('message', { chat_id: chatId, text: textInput });
+
+      setTextInput('');
+    },
+    [chatId, socket, textInput]
+  );
 
   if (!contact) {
     return (
@@ -98,26 +135,34 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
 
       <main>
         {messages.map(message => (
-          <article key={message.id}>
+          <article
+            key={message.id}
+            className={session?.user?.email === message.from.email && 'sent'}
+          >
             <div>{message.text}</div>
-            <p>{message.created_at}</p>
+            <p>{message.createdAt}</p>
           </article>
         ))}
       </main>
 
-      <footer>
+      <form onSubmit={handleSendMessage}>
         <label>
-          <input type="text" placeholder="Type your message" />
+          <input
+            type="text"
+            placeholder="Type your message"
+            onChange={event => setTextInput(event.target.value)}
+            value={textInput}
+          />
 
-          <button type="submit">
+          <button type="button">
             <FiSmile size={20} />
           </button>
         </label>
 
-        <button type="button">
+        <button type="submit">
           <RiSendPlaneFill size={25} />
         </button>
-      </footer>
+      </form>
     </Container>
   );
 }
