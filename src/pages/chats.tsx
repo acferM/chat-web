@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { GetServerSideProps } from 'next';
 import { getSession, useSession } from 'next-auth/react';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import { io } from 'socket.io-client';
 import { Chat } from '../components/Chat';
@@ -27,17 +27,30 @@ type Org = {
   members_url: string;
 };
 
-const socket = io('http://192.168.1.30:3333', {
-  autoConnect: false,
-});
+type Contact = {
+  name: string;
+  avatar_url: string;
+};
 
 interface ChatsProps {
   users: User[];
   orgs: Org[];
 }
 
+const socket = io('http://192.168.1.30:3333', {
+  autoConnect: false,
+});
+
 export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
   const { data: session, status } = useSession();
+  const [selectedContact, setSelectedContact] = useState<Contact>(null);
+
+  const handleUpdateSelectedContact = useCallback(
+    (name: string, avatar_url: string) => {
+      setSelectedContact({ name, avatar_url });
+    },
+    []
+  );
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -62,12 +75,12 @@ export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
           <input type="text" placeholder="Pesquisar" />
         </label>
 
-        <Groups contacts={orgs} />
+        <Groups contacts={orgs} setContact={handleUpdateSelectedContact} />
 
-        <Users contacts={users} />
+        <Users contacts={users} setContact={handleUpdateSelectedContact} />
       </section>
 
-      <Chat />
+      <Chat contact={selectedContact} />
     </Container>
   );
 }

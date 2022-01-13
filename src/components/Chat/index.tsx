@@ -4,14 +4,39 @@ import { RiSendPlaneFill } from 'react-icons/ri';
 
 import { Container } from './styles';
 
-export function Chat(): JSX.Element {
+type Contact = {
+  name: string;
+  avatar_url: string;
+};
+
+interface ChatProps {
+  contact: Contact;
+}
+
+export function Chat({ contact }: ChatProps): JSX.Element {
+  if (!contact) {
+    return (
+      <Container
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <h1 style={{ color: '#fff', fontFamily: 'Poppins' }}>
+          Select a contact to start chat
+        </h1>
+      </Container>
+    );
+  }
+
   return (
     <Container>
       <header>
-        <img src="https://github.com/acferlucas.png" alt="acferlucas" />
+        <img src={contact.avatar_url} alt={contact.name} />
 
         <div>
-          <h1>acferlucas</h1>
+          <h1>{contact.name}</h1>
           <p>Online</p>
         </div>
       </header>

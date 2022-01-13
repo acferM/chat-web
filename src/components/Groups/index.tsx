@@ -9,16 +9,21 @@ type Org = {
 
 interface GroupsProps {
   contacts: Org[];
+  setContact: (name: string, avatar_url: string) => void;
 }
 
-export function Groups({ contacts }: GroupsProps): JSX.Element {
+export function Groups({ contacts, setContact }: GroupsProps): JSX.Element {
   return (
     <Container>
       <h1>Groups</h1>
 
       <main>
         {contacts.map(contact => (
-          <button type="button" key={contact.id}>
+          <button
+            type="button"
+            key={contact.id}
+            onClick={() => setContact(contact.login, contact.avatar_url)}
+          >
             <img src={contact.avatar_url} alt={contact.login} />
 
             <div>
