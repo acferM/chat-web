@@ -27,7 +27,7 @@ type Org = {
   members_url: string;
 };
 
-const socket = io('http://localhost:3333', {
+const socket = io('http://192.168.1.30:3333', {
   autoConnect: false,
 });
 
@@ -43,8 +43,9 @@ export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
     if (status === 'authenticated') {
       socket.connect();
 
-      socket.volatile.emit('user_signin', {
+      socket.emit('user_signin', {
         name: session.user.name,
+        login: session.login,
         email: session.user.email,
         avatar_url: session.user.image,
       });
