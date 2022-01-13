@@ -9,7 +9,12 @@ type Org = {
 
 interface GroupsProps {
   contacts: Org[];
-  setContact: (name: string, avatar_url: string) => void;
+  setContact: (
+    name: string,
+    avatar_url: string,
+    type: 'user' | 'group',
+    login: string
+  ) => void;
 }
 
 export function Groups({ contacts, setContact }: GroupsProps): JSX.Element {
@@ -22,7 +27,14 @@ export function Groups({ contacts, setContact }: GroupsProps): JSX.Element {
           <button
             type="button"
             key={contact.id}
-            onClick={() => setContact(contact.login, contact.avatar_url)}
+            onClick={() =>
+              setContact(
+                contact.login,
+                contact.avatar_url,
+                'group',
+                contact.login
+              )
+            }
           >
             <img src={contact.avatar_url} alt={contact.login} />
 

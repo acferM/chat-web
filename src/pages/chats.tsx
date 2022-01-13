@@ -16,6 +16,7 @@ import { Container } from '../styles/Chat';
 
 type User = {
   id: string;
+  login: string;
   name: string;
   avatar_url: string;
 };
@@ -29,7 +30,9 @@ type Org = {
 
 type Contact = {
   name: string;
+  login: string;
   avatar_url: string;
+  type: 'user' | 'group';
 };
 
 interface ChatsProps {
@@ -46,8 +49,13 @@ export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
   const [selectedContact, setSelectedContact] = useState<Contact>(null);
 
   const handleUpdateSelectedContact = useCallback(
-    (name: string, avatar_url: string) => {
-      setSelectedContact({ name, avatar_url });
+    (
+      name: string,
+      avatar_url: string,
+      type: 'user' | 'group',
+      login: string
+    ) => {
+      setSelectedContact({ name, avatar_url, type, login });
     },
     []
   );
@@ -80,7 +88,7 @@ export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
         <Users contacts={users} setContact={handleUpdateSelectedContact} />
       </section>
 
-      <Chat contact={selectedContact} />
+      <Chat contact={selectedContact} socket={socket} />
     </Container>
   );
 }

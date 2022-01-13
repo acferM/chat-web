@@ -60,6 +60,7 @@ export const Container = styled.div`
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      align-items: flex-start;
 
       & + article {
         margin-top: 1.875rem;
@@ -74,16 +75,14 @@ export const Container = styled.div`
       }
 
       div {
-        width: min-content;
         max-width: 70%;
         padding: 0.75rem 2.625rem;
         background: ${props => props.theme.colors.shape};
-        white-space: pre;
         ${props => props.theme.fonts.message};
         border-radius: 0.625rem;
       }
 
-      p {
+      > p {
         opacity: 0.25;
         ${props => props.theme.fonts.message_time};
       }
