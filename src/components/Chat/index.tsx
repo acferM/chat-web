@@ -1,14 +1,16 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useSession } from 'next-auth/react';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import dayjs from 'dayjs';
+import { Picker, BaseEmoji } from 'emoji-mart';
 import { FiSmile } from 'react-icons/fi';
 import { RiSendPlaneFill } from 'react-icons/ri';
 
 import { api } from '../../services/api';
 
 import { Container } from './styles';
+import 'emoji-mart/css/emoji-mart.css';
 
 type Contact = {
   name: string;
@@ -35,6 +37,9 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
   const [chatId, setChatId] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [textInput, setTextInput] = useState('');
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+
+  const chatEnd = useRef<HTMLDivElement>(null);
 
   const { data: session } = useSession();
 
@@ -59,7 +64,7 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
               createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
             }));
 
-            setMessages(formattedMessages);
+            setMessages(formattedMessages.reverse());
           }
         );
       } else if (contact.type === 'group') {
@@ -76,7 +81,12 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
               `messages/${chat_id}`
             );
 
-            setMessages(requestMessages);
+            const formattedMessages = requestMessages.map(message => ({
+              ...message,
+              createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
+            }));
+
+            setMessages(formattedMessages.reverse());
           }
         );
       }
@@ -92,6 +102,8 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
           createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
         },
       ]);
+
+      chatEnd.current?.scrollIntoView();
     });
   }, [socket]);
 
@@ -143,6 +155,7 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
             <p>{message.createdAt}</p>
           </article>
         ))}
+        <div ref={chatEnd} />
       </main>
 
       <form onSubmit={handleSendMessage}>
@@ -154,9 +167,24 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
             value={textInput}
           />
 
-          <button type="button">
+          <button
+            type="button"
+            onClick={() => setIsEmojiPickerOpen(prevState => !prevState)}
+          >
             <FiSmile size={20} />
           </button>
+
+          {isEmojiPickerOpen && (
+            <Picker
+              set="twitter"
+              theme="dark"
+              color="#1A66FF"
+              title="Pick a emoji…"
+              onClick={(emoji: BaseEmoji) =>
+                setTextInput(prevText => prevText + emoji.native)
+              }
+            />
+          )}
         </label>
 
         <button type="submit">

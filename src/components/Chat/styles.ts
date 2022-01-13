@@ -106,7 +106,7 @@ export const Container = styled.div`
       align-items: center;
       gap: 0.5rem;
 
-      input {
+      > input {
         height: 100%;
         width: 100%;
         background: transparent;
@@ -119,14 +119,21 @@ export const Container = styled.div`
         }
       }
 
-      button {
+      > button {
         background: transparent;
         border: 0;
+        position: relative;
 
-        svg {
+        > svg {
           color: ${props => props.theme.colors.text};
           opacity: 0.5;
         }
+      }
+
+      > section {
+        position: absolute;
+        right: 2.5rem;
+        bottom: 7.5rem;
       }
     }
 
