@@ -85,7 +85,11 @@ export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
 
         <Groups contacts={orgs} setContact={handleUpdateSelectedContact} />
 
-        <Users contacts={users} setContact={handleUpdateSelectedContact} />
+        <Users
+          contacts={users}
+          setContact={handleUpdateSelectedContact}
+          socket={socket}
+        />
       </section>
 
       <Chat contact={selectedContact} socket={socket} />

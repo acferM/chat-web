@@ -52,17 +52,19 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
             type: contact.type,
             userLogin: contact.login,
           },
-          async chat_id => {
+          async (chat_id: string) => {
             setChatId(chat_id);
 
             const { data: requestMessages } = await api.get(
               `messages/${chat_id}`
             );
 
-            const formattedMessages = requestMessages.map(message => ({
-              ...message,
-              createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
-            }));
+            const formattedMessages = requestMessages.map(
+              (message: Message) => ({
+                ...message,
+                createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
+              })
+            );
 
             setMessages(formattedMessages.reverse());
           }
@@ -74,17 +76,19 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
             type: contact.type,
             usersUrl: `https://api.github.com/orgs/${contact.login}/members`,
           },
-          async chat_id => {
+          async (chat_id: string) => {
             setChatId(chat_id);
 
             const { data: requestMessages } = await api.get(
               `messages/${chat_id}`
             );
 
-            const formattedMessages = requestMessages.map(message => ({
-              ...message,
-              createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
-            }));
+            const formattedMessages = requestMessages.map(
+              (message: Message) => ({
+                ...message,
+                createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
+              })
+            );
 
             setMessages(formattedMessages.reverse());
           }
@@ -95,17 +99,19 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
 
   useEffect(() => {
     socket.on('message', message => {
-      setMessages(prevMessages => [
-        ...prevMessages,
-        {
-          ...message,
-          createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
-        },
-      ]);
+      if (message.chatId === chatId) {
+        setMessages(prevMessages => [
+          ...prevMessages,
+          {
+            ...message,
+            createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
+          },
+        ]);
 
-      chatEnd.current?.scrollIntoView();
+        chatEnd.current?.scrollIntoView();
+      }
     });
-  }, [socket]);
+  }, [socket, chatId]);
 
   const handleSendMessage = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -149,7 +155,9 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
         {messages.map(message => (
           <article
             key={message.id}
-            className={session?.user?.email === message.from.email && 'sent'}
+            className={
+              session?.user?.email === message.from.email ? 'sent' : ''
+            }
           >
             <div>{message.text}</div>
             <p>{message.createdAt}</p>
