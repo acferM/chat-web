@@ -1,3 +1,5 @@
+import { Socket } from 'socket.io-client';
+import { useEffect } from 'react';
 import { Container } from './styles';
 
 type User = {
@@ -15,9 +17,20 @@ interface UsersProps {
     type: 'user' | 'group',
     login: string
   ) => void;
+  socket: Socket;
 }
 
-export function Users({ contacts, setContact }: UsersProps): JSX.Element {
+export function Users({
+  contacts,
+  setContact,
+  socket,
+}: UsersProps): JSX.Element {
+  useEffect(() => {
+    socket.on('notification', data => {
+      console.log(data);
+    });
+  }, [socket]);
+
   return (
     <Container>
       <h1>Users</h1>

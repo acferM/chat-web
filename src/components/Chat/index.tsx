@@ -1,6 +1,13 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useSession } from 'next-auth/react';
-import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Socket } from 'socket.io-client';
 import dayjs from 'dayjs';
 import { Picker, BaseEmoji } from 'emoji-mart';
@@ -21,6 +28,7 @@ type Contact = {
 
 type Message = {
   id: string;
+  chatId: string;
   text: string;
   createdAt: string;
   from: {
@@ -31,87 +39,50 @@ type Message = {
 interface ChatProps {
   contact: Contact;
   socket: Socket;
+  chatId: string;
 }
 
-export function Chat({ contact, socket }: ChatProps): JSX.Element {
-  const [chatId, setChatId] = useState('');
+export function Chat({ contact, socket, chatId }: ChatProps): JSX.Element {
   const [messages, setMessages] = useState<Message[]>([]);
   const [textInput, setTextInput] = useState('');
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+
+  const chatMessages = useMemo(() => {
+    const filteredMessages = messages.filter(
+      message => message.chatId === chatId
+    );
+
+    const formattedMessages = filteredMessages.map(message => ({
+      ...message,
+      createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
+    }));
+
+    return formattedMessages;
+  }, [messages, chatId]);
 
   const chatEnd = useRef<HTMLDivElement>(null);
 
   const { data: session } = useSession();
 
   useEffect(() => {
-    if (contact) {
-      if (contact.type === 'user') {
-        socket.emit(
-          'start_chat',
-          {
-            type: contact.type,
-            userLogin: contact.login,
-          },
-          async (chat_id: string) => {
-            setChatId(chat_id);
+    socket.on('message', (message: Message) => {
+      setMessages(prevMessages => [...prevMessages, message]);
 
-            const { data: requestMessages } = await api.get(
-              `messages/${chat_id}`
-            );
-
-            const formattedMessages = requestMessages.map(
-              (message: Message) => ({
-                ...message,
-                createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
-              })
-            );
-
-            setMessages(formattedMessages.reverse());
-          }
-        );
-      } else if (contact.type === 'group') {
-        socket.emit(
-          'start_chat',
-          {
-            type: contact.type,
-            usersUrl: `https://api.github.com/orgs/${contact.login}/members`,
-          },
-          async (chat_id: string) => {
-            setChatId(chat_id);
-
-            const { data: requestMessages } = await api.get(
-              `messages/${chat_id}`
-            );
-
-            const formattedMessages = requestMessages.map(
-              (message: Message) => ({
-                ...message,
-                createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
-              })
-            );
-
-            setMessages(formattedMessages.reverse());
-          }
-        );
-      }
-    }
-  }, [contact, socket]);
+      chatEnd?.current?.scrollIntoView();
+    });
+  }, [socket]);
 
   useEffect(() => {
-    socket.on('message', message => {
-      if (message.chatId === chatId) {
-        setMessages(prevMessages => [
-          ...prevMessages,
-          {
-            ...message,
-            createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
-          },
-        ]);
+    async function loadMessages(): Promise<void> {
+      if (contact && chatId) {
+        const { data: requestMessages } = await api.get(`messages/${chatId}`);
 
-        chatEnd.current?.scrollIntoView();
+        setMessages(requestMessages.reverse());
       }
-    });
-  }, [socket, chatId]);
+    }
+
+    loadMessages();
+  }, [contact, chatId]);
 
   const handleSendMessage = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -152,7 +123,7 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
       </header>
 
       <main>
-        {messages.map(message => (
+        {chatMessages.map(message => (
           <article
             key={message.id}
             className={

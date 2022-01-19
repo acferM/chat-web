@@ -47,6 +47,7 @@ const socket = io('http://192.168.1.30:3333', {
 export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
   const { data: session, status } = useSession();
   const [selectedContact, setSelectedContact] = useState<Contact>(null);
+  const [chatId, setChatId] = useState('');
 
   const handleUpdateSelectedContact = useCallback(
     (
@@ -56,6 +57,30 @@ export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
       login: string
     ) => {
       setSelectedContact({ name, avatar_url, type, login });
+
+      if (type === 'user') {
+        socket.emit(
+          'start_chat',
+          {
+            type: 'user',
+            userLogin: login,
+          },
+          (chat_id: string) => {
+            setChatId(chat_id);
+          }
+        );
+      } else if (type === 'group') {
+        socket.emit(
+          'start_chat',
+          {
+            type: 'group',
+            usersUrl: `https://api.github.com/orgs/${login}/public_members`,
+          },
+          (chat_id: string) => {
+            setChatId(chat_id);
+          }
+        );
+      }
     },
     []
   );
@@ -92,7 +117,7 @@ export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
         />
       </section>
 
-      <Chat contact={selectedContact} socket={socket} />
+      <Chat contact={selectedContact} socket={socket} chatId={chatId} />
     </Container>
   );
 }
