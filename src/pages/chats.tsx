@@ -59,26 +59,17 @@ export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
       setSelectedContact({ name, avatar_url, type, login });
 
       if (type === 'user') {
-        socket.emit(
-          'start_chat',
-          {
-            type: 'user',
-            userLogin: login,
-          },
-          (chat_id: string) => {
-            setChatId(chat_id);
-          }
+        socket.emit('start_chat', { type, userLogin: login }, chat_id =>
+          setChatId(chat_id)
         );
       } else if (type === 'group') {
         socket.emit(
           'start_chat',
           {
-            type: 'group',
-            usersUrl: `https://api.github.com/orgs/${login}/public_members`,
+            type,
+            usersUrl: `https://api.github.com/orgs/${login}`,
           },
-          (chat_id: string) => {
-            setChatId(chat_id);
-          }
+          chat_id => setChatId(chat_id)
         );
       }
     },

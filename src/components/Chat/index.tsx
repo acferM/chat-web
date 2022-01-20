@@ -60,6 +60,11 @@ export function Chat({ contact, socket, chatId }: ChatProps): JSX.Element {
     return formattedMessages;
   }, [messages, chatId]);
 
+  /* const addMessage = useCallback(message => {
+    console.log('-----------');
+    console.log(message);
+  }, []); */
+
   const chatEnd = useRef<HTMLDivElement>(null);
 
   const { data: session } = useSession();
@@ -67,6 +72,7 @@ export function Chat({ contact, socket, chatId }: ChatProps): JSX.Element {
   useEffect(() => {
     socket.on('message', (message: Message) => {
       setMessages(prevMessages => [...prevMessages, message]);
+      //    addMessage(message);
 
       chatEnd?.current?.scrollIntoView();
     });
