@@ -13,6 +13,7 @@ import { api } from '../services/api';
 import { github } from '../services/github';
 
 import { Container } from '../styles/Chat';
+import { useChat } from '../hooks/useChat';
 
 type User = {
   id: string;
@@ -47,7 +48,7 @@ const socket = io('http://192.168.1.30:3333', {
 export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
   const { data: session, status } = useSession();
   const [selectedContact, setSelectedContact] = useState<Contact>(null);
-  const [chatId, setChatId] = useState('');
+  const { updateChat } = useChat();
 
   const handleUpdateSelectedContact = useCallback(
     (
@@ -59,21 +60,20 @@ export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
       setSelectedContact({ name, avatar_url, type, login });
 
       if (type === 'user') {
-        socket.emit('start_chat', { type, userLogin: login }, chat_id =>
-          setChatId(chat_id)
+        socket.emit(
+          'start_chat',
+          { type, userLogin: login },
+          (chat_id: string) => updateChat(chat_id)
         );
       } else if (type === 'group') {
         socket.emit(
           'start_chat',
-          {
-            type,
-            usersUrl: `https://api.github.com/orgs/${login}`,
-          },
-          chat_id => setChatId(chat_id)
+          { type, usersUrl: `https://api.github.com/orgs/${login}/members` },
+          (chat_id: string) => updateChat(chat_id)
         );
       }
     },
-    []
+    [updateChat]
   );
 
   useEffect(() => {
@@ -108,7 +108,7 @@ export default function Chats({ users, orgs }: ChatsProps): JSX.Element {
         />
       </section>
 
-      <Chat contact={selectedContact} socket={socket} chatId={chatId} />
+      <Chat contact={selectedContact} socket={socket} />
     </Container>
   );
 }

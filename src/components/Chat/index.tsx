@@ -2,6 +2,7 @@
 import { useSession } from 'next-auth/react';
 import {
   FormEvent,
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -18,6 +19,7 @@ import { api } from '../../services/api';
 
 import { Container } from './styles';
 import 'emoji-mart/css/emoji-mart.css';
+import { useChat } from '../../hooks/useChat';
 
 type Contact = {
   name: string;
@@ -30,7 +32,8 @@ type Message = {
   id: string;
   chatId: string;
   text: string;
-  createdAt: string;
+  createdAt: Date;
+  formattedCreatedAt: string;
   from: {
     email: string;
   };
@@ -39,31 +42,40 @@ type Message = {
 interface ChatProps {
   contact: Contact;
   socket: Socket;
-  chatId: string;
 }
 
-export function Chat({ contact, socket, chatId }: ChatProps): JSX.Element {
-  const [messages, setMessages] = useState<Message[]>([]);
+export function Chat({ contact, socket }: ChatProps): JSX.Element {
+  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
+  const [recievedMessage, setRecievedMessages] = useState<Message>(null);
   const [textInput, setTextInput] = useState('');
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
-  const chatMessages = useMemo(() => {
-    const filteredMessages = messages.filter(
-      message => message.chatId === chatId
-    );
+  const prevMessages = useRef<Message[]>([]);
 
-    const formattedMessages = filteredMessages.map(message => ({
+  const { chatId } = useChat();
+
+  const messages = useMemo(() => {
+    if (recievedMessage && recievedMessage.chatId === chatId) {
+      const updatedMessages = [...prevMessages.current, recievedMessage];
+
+      const formattedMessages = updatedMessages.map(message => ({
+        ...message,
+        formattedCreatedAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
+      }));
+      prevMessages.current = formattedMessages;
+
+      return formattedMessages;
+    }
+
+    const formattedMessages = initialMessages.map(message => ({
       ...message,
-      createdAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
+      formattedCreatedAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
     }));
 
-    return formattedMessages;
-  }, [messages, chatId]);
+    prevMessages.current = formattedMessages;
 
-  /* const addMessage = useCallback(message => {
-    console.log('-----------');
-    console.log(message);
-  }, []); */
+    return formattedMessages;
+  }, [chatId, recievedMessage, initialMessages]);
 
   const chatEnd = useRef<HTMLDivElement>(null);
 
@@ -71,8 +83,7 @@ export function Chat({ contact, socket, chatId }: ChatProps): JSX.Element {
 
   useEffect(() => {
     socket.on('message', (message: Message) => {
-      setMessages(prevMessages => [...prevMessages, message]);
-      //    addMessage(message);
+      setRecievedMessages(message);
 
       chatEnd?.current?.scrollIntoView();
     });
@@ -83,7 +94,7 @@ export function Chat({ contact, socket, chatId }: ChatProps): JSX.Element {
       if (contact && chatId) {
         const { data: requestMessages } = await api.get(`messages/${chatId}`);
 
-        setMessages(requestMessages.reverse());
+        setInitialMessages(requestMessages.reverse());
       }
     }
 
@@ -129,7 +140,7 @@ export function Chat({ contact, socket, chatId }: ChatProps): JSX.Element {
       </header>
 
       <main>
-        {chatMessages.map(message => (
+        {messages.map(message => (
           <article
             key={message.id}
             className={
@@ -137,7 +148,7 @@ export function Chat({ contact, socket, chatId }: ChatProps): JSX.Element {
             }
           >
             <div>{message.text}</div>
-            <p>{message.createdAt}</p>
+            <p>{message.formattedCreatedAt}</p>
           </article>
         ))}
         <div ref={chatEnd} />
