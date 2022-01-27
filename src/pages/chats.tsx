@@ -41,7 +41,7 @@ interface ChatsProps {
   orgs: Org[];
 }
 
-const socket = io('http://192.168.1.30:3333', {
+const socket = io('http://localhost:3333', {
   autoConnect: false,
 });
 
