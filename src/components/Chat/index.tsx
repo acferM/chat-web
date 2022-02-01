@@ -46,7 +46,7 @@ interface ChatProps {
 
 export function Chat({ contact, socket }: ChatProps): JSX.Element {
   const [initialMessages, setInitialMessages] = useState<Message[]>([]);
-  const [recievedMessage, setRecievedMessages] = useState<Message>(null);
+  const [receivedMessage, setReceivedMessages] = useState<Message>(null);
   const [textInput, setTextInput] = useState('');
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
@@ -55,16 +55,32 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
   const { chatId } = useChat();
 
   const messages = useMemo(() => {
-    if (recievedMessage && recievedMessage.chatId === chatId) {
-      const updatedMessages = [...prevMessages.current, recievedMessage];
+    if (receivedMessage && receivedMessage.chatId === chatId) {
+      let insertedNewMessage = false;
+
+      const updatedMessages = [...prevMessages.current, receivedMessage];
 
       const formattedMessages = updatedMessages.map(message => ({
         ...message,
         formattedCreatedAt: dayjs(message.createdAt).format('DD/MM/YYYY HH:mm'),
       }));
-      prevMessages.current = formattedMessages;
 
-      return formattedMessages;
+      const filteredMessages = formattedMessages.filter(message => {
+        if (message.id !== receivedMessage.id) {
+          return true;
+        }
+
+        if (message.id === receivedMessage.id && !insertedNewMessage) {
+          insertedNewMessage = true;
+          return true;
+        }
+
+        return false;
+      });
+
+      prevMessages.current = filteredMessages;
+
+      return filteredMessages;
     }
 
     const formattedMessages = initialMessages.map(message => ({
@@ -75,7 +91,7 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
     prevMessages.current = formattedMessages;
 
     return formattedMessages;
-  }, [chatId, recievedMessage, initialMessages]);
+  }, [chatId, receivedMessage, initialMessages]);
 
   const chatEnd = useRef<HTMLDivElement>(null);
 
@@ -83,7 +99,7 @@ export function Chat({ contact, socket }: ChatProps): JSX.Element {
 
   useEffect(() => {
     socket.on('message', (message: Message) => {
-      setRecievedMessages(message);
+      setReceivedMessages(message);
 
       chatEnd?.current?.scrollIntoView();
     });
